@@ -19,15 +19,25 @@ class UpdateList(threading.Thread):
   def run (self):
     try:
       for dirname, dirnames, filenames in os.walk(self.dir):
-        # print path to all filenames.
         # search files for "@todo"
         for filename in filenames:
             searchfile = open(os.path.join(dirname, filename), "r")
             for num, line in enumerate(searchfile, 0):
-              if "@todo" in line: print num, line, filename
+              if "@todo" in line:                 
+                item = AddListItem(filename, line, num)
+                item.run()
             searchfile.close()
             # print os.path.join(dirname, filename)      
       return
+    # @todo look into error handling
     except ( 4 ) as (e):
       err = "here"
+
+class AddListItem():
+  def __init__(self, filename, text, lineNum):
+    self.filename = filename
+    self.text = text
+    self.lineNum = lineNum
+  def run (self):
+    print(self.lineNum)
 
