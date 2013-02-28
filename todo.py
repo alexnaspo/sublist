@@ -35,12 +35,13 @@ class UpdateList(threading.Thread):
       err = "here"
 
 class AddListItem():
-  def __init__(self, filename, text, lineNum):
-    self.filename = filename
+  def __init__(self, filepath, text, lineNum):
+    self.filepath = filepath
     self.text = text
     self.lineNum = lineNum
   def run (self):
-    print(self.filename)
+    print(self.filepath)
+    #@todo need to check for max and handle error
     toDoList.append(self);
 
 class TodolistCommand(sublime_plugin.TextCommand):
@@ -48,8 +49,8 @@ class TodolistCommand(sublime_plugin.TextCommand):
     window = sublime.active_window()
 
     curList = []
-    for value in toDoList:
-      curList.append(value.text)
+    for item in toDoList:
+      curList.append([item.text, item.filepath])
       
     window.show_quick_panel(curList, None, sublime.MONOSPACE_FONT)
 
