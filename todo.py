@@ -1,5 +1,7 @@
 import sublime, sublime_plugin, os, threading
-# @todo - Finish project
+from time import sleep
+
+toDoList = []
 
 class TodoCommand(sublime_plugin.TextCommand):
   def run(self, edit):
@@ -10,6 +12,9 @@ class TodoCommand(sublime_plugin.TextCommand):
     directory = '/Users/Alex/Sites/clients/Bothsider'
     thread = UpdateList(directory)
     thread.start()
+    sleep(1.00)
+    for x in toDoList:
+      print(x.text)
 
 class UpdateList(threading.Thread):
   def __init__(self, directory):
@@ -40,4 +45,5 @@ class AddListItem():
     self.lineNum = lineNum
   def run (self):
     print(self.lineNum)
+    toDoList.append(self);
 
