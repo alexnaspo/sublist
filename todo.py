@@ -44,6 +44,8 @@ class AddListItem():
     #@todo need to check for max and handle error
     toDoList.append(self);
 
+
+
 class TodolistCommand(sublime_plugin.TextCommand):
   def run(self, edit):
     window = sublime.active_window()
@@ -52,6 +54,9 @@ class TodolistCommand(sublime_plugin.TextCommand):
     for item in toDoList:
       curList.append([item.text, item.filepath])
       
-    window.show_quick_panel(curList, None, sublime.MONOSPACE_FONT)
+    window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
 
+  def open(self, edit):
+    window = sublime.active_window()
+    print('yes')
 
