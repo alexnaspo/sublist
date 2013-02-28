@@ -23,8 +23,9 @@ class UpdateList(threading.Thread):
         for filename in filenames:
             searchfile = open(os.path.join(dirname, filename), "r")
             for num, line in enumerate(searchfile, 0):
-              if "@todo" in line:                 
-                item = AddListItem(filename, line, num)
+              if "@todo" in line:          
+                fullPath = os.path.join(dirname, filename)       
+                item = AddListItem(fullPath, line, num)
                 item.run()
             searchfile.close()
             # print os.path.join(dirname, filename)      
@@ -39,7 +40,7 @@ class AddListItem():
     self.text = text
     self.lineNum = lineNum
   def run (self):
-    print(self.lineNum)
+    print(self.filename)
     toDoList.append(self);
 
 class TodolistCommand(sublime_plugin.TextCommand):
