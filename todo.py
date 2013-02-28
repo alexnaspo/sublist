@@ -1,4 +1,4 @@
-import sublime, sublime_plugin, os, threading
+import sublime, sublime_plugin, os, threading, re
 
 class TodoCommand(sublime_plugin.TextCommand):
   def run(self, edit):
@@ -31,8 +31,9 @@ class List(threading.Thread):
             searchfile = open(os.path.join(dirname, filename), "r")
             for num, line in enumerate(searchfile, 0):
               if "@todo" in line:          
-                fullPath = os.path.join(dirname, filename)       
-                item = ListItem(fullPath, line, num)
+                fullPath = os.path.join(dirname, filename) 
+                line = re.search("(@todo\\s.*)", line, re.I | re.S) 
+                item = ListItem(fullPath, line.group(1), num)
                 self.add(item)
             searchfile.close()    
       return
