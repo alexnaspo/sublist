@@ -1,6 +1,6 @@
 import sublime, sublime_plugin, os, threading
 
-toDoList = []
+toDoList = List();
 
 class TodoCommand(sublime_plugin.TextCommand):
   def run(self, edit):
@@ -25,9 +25,8 @@ class UpdateList(threading.Thread):
               if "@todo" in line:          
                 fullPath = os.path.join(dirname, filename)       
                 item = ListItem(fullPath, line, num)
-                item.run()
-            searchfile.close()
-            # print os.path.join(dirname, filename)      
+                toDoList.add(item)
+            searchfile.close()    
       return
     # @todo look into error handling
     except ( 4 ) as (e):
@@ -38,33 +37,30 @@ class ListItem():
     self.filepath = filepath
     self.text = text
     self.lineNum = lineNum
-  def run (self):
-    print(self.filepath)
-    #@todo need to check for max and handle error
-    toDoList.append(self);
 
+class List():
+  def __init__(self):
+    self.list = []
 
-
-class TodolistCommand(sublime_plugin.TextCommand):
-  def run(self, edit):
-    window = sublime.active_window()
-
-    curList = []
-    for item in toDoList:
-      curList.append([item.text, item.filepath])
-      
-    window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
+  def add (self, item):
+    print(item)
+    self.list.append(item)
 
   def open(self, index):
-
     window = sublime.active_window()
-    window.open_file(toDoList[index].filepath)
+    window.open_file(toDoList.list[index].filepath)
     view = window.active_view()
-
-    #focus the @todo note in the new view
+    #focus the todo note in the new view
     # @todo finish this concept - not always working
-    pt = view.text_point(toDoList[index].lineNum, 0)
-    view.show(pt);
+    pt = view.text_point(toDoList.list[index].lineNum, 0)
+    view.show(pt);     
 
-    
+  def panel(self, edit):
+    curList = []
+    for item in toDoList.list:
+      curList.append([item.text, item.filepath])
+    window = sublime.active_window()
+    window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
+
+   
 
