@@ -56,7 +56,15 @@ class TodolistCommand(sublime_plugin.TextCommand):
     window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
 
   def open(self, index):
+
     window = sublime.active_window()
     window.open_file(toDoList[index].filepath)
+    view = window.active_view()
+
+    #focus the @todo note in the new view
+    # @todo finish this concept - not always working
+    pt = view.text_point(toDoList[index].lineNum, 0)
+    view.show(pt);
+
     
 
