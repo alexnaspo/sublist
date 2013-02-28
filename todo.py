@@ -8,28 +8,25 @@ class TodoCommand(sublime_plugin.TextCommand):
     view = window.active_view()
     print(view.file_name())
 
-    threads = []
     thread = UpdateList()
     thread.start()
-
-
-    for dirname, dirnames, filenames in os.walk('/Users/Alex/Sites/clients/Bothsider/application'):
-      # print path to all subdirectories first.
-      # for subdirname in dirnames:
-      #     print os.path.join(dirname, subdirname)
-
-      # print path to all filenames.
-      for filename in filenames:
-          searchfile = open(os.path.join(dirname, filename), "r")
-          for line in searchfile:
-            if "@todo" in line: print line
-          searchfile.close()
-          #print os.path.join(dirname, filename)
 
 class UpdateList(threading.Thread):
   def run (self):
     try:
       print('yes')
+      for dirname, dirnames, filenames in os.walk('/Users/Alex/Sites/clients/Bothsider'):
+        # print path to all subdirectories first.
+        # for subdirname in dirnames:
+        #     print os.path.join(dirname, subdirname)
+
+        # print path to all filenames.
+        for filename in filenames:
+            searchfile = open(os.path.join(dirname, filename), "r")
+            for line in searchfile:
+              if "@todo" in line: print line
+            searchfile.close()
+            #print os.path.join(dirname, filename)      
       return
     except ( error ) as (e):
       err = "here"
