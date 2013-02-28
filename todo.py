@@ -5,16 +5,11 @@ toDoList = []
 
 class TodoCommand(sublime_plugin.TextCommand):
   def run(self, edit):
-    window = sublime.active_window()
-    view = window.active_view()
-    print(view.file_name())
 
     directory = '/Users/Alex/Sites/clients/Bothsider'
     thread = UpdateList(directory)
     thread.start()
     sleep(1.00)
-    for x in toDoList:
-      print(x.text)
 
 class UpdateList(threading.Thread):
   def __init__(self, directory):
@@ -46,4 +41,15 @@ class AddListItem():
   def run (self):
     print(self.lineNum)
     toDoList.append(self);
+
+class TodolistCommand(sublime_plugin.TextCommand):
+  def run(self, edit):
+    window = sublime.active_window()
+
+    curList = []
+    for value in toDoList:
+      curList.append(value.text)
+      
+    window.show_quick_panel(curList, None, sublime.MONOSPACE_FONT)
+
 
