@@ -1,5 +1,6 @@
 import sublime, sublime_plugin, os, threading
 # @todo - Finish project
+
 class TodoCommand(sublime_plugin.TextCommand):
   def run(self, edit):
     window = sublime.active_window()
@@ -18,18 +19,15 @@ class UpdateList(threading.Thread):
   def run (self):
     try:
       for dirname, dirnames, filenames in os.walk(self.dir):
-        # print path to all subdirectories first.
-        # for subdirname in dirnames:
-        #     print os.path.join(dirname, subdirname)
-
         # print path to all filenames.
+        # search files for "@todo"
         for filename in filenames:
             searchfile = open(os.path.join(dirname, filename), "r")
-            for line in searchfile:
-              if "@todo" in line: print line
+            for num, line in enumerate(searchfile, 0):
+              if "@todo" in line: print num, line, filename
             searchfile.close()
-            #print os.path.join(dirname, filename)      
+            # print os.path.join(dirname, filename)      
       return
-    except ( error ) as (e):
+    except ( 4 ) as (e):
       err = "here"
 
