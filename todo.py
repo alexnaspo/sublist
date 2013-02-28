@@ -2,20 +2,22 @@ import sublime, sublime_plugin, os, threading
 # @todo - Finish project
 class TodoCommand(sublime_plugin.TextCommand):
   def run(self, edit):
-    #ensure copy functionality still remains
-    self.view.run_command('copy')
     window = sublime.active_window()
     view = window.active_view()
     print(view.file_name())
 
-    thread = UpdateList()
+    directory = '/Users/Alex/Sites/clients/Bothsider'
+    thread = UpdateList(directory)
     thread.start()
 
 class UpdateList(threading.Thread):
+  def __init__(self, directory):
+    self.dir = directory
+    threading.Thread.__init__(self) 
+
   def run (self):
     try:
-      print('yes')
-      for dirname, dirnames, filenames in os.walk('/Users/Alex/Sites/clients/Bothsider'):
+      for dirname, dirnames, filenames in os.walk(self.dir):
         # print path to all subdirectories first.
         # for subdirname in dirnames:
         #     print os.path.join(dirname, subdirname)
