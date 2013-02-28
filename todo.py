@@ -58,18 +58,21 @@ class List(threading.Thread):
         print(item)
         self.list.append(item)
 
+    def count(self):
+        return len(self.list)
+
     def open(self, index):
         window = sublime.active_window()
-        window.open_file(toDoList.list[index].filepath)
+        window.open_file(self.list[index].filepath)
         view = window.active_view()
         #focus the todo note in the new view
         # @todo finish this concept - not always working
-        pt = view.text_point(toDoList.list[index].lineNum, 0)
+        pt = view.text_point(self.list[index].lineNum, 0)
         view.show(pt)
 
     def panel(self):
         curList = []
-        for item in toDoList.list:
+        for item in self.list:
             curList.append([item.text, item.filepath])
             window = sublime.active_window()
         window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
