@@ -9,10 +9,11 @@ toDoList = []
 
 class TodoCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        # @todo how to pass the directory?
         directory = '/Users/Alex/Sites/clients/Bothsider'
         global toDoList
         toDoList = List(directory)
-        #creates the listObject in a thread
+        # creates the listObject in a thread
         toDoList.start()
 
 
@@ -34,11 +35,11 @@ class List(threading.Thread):
         self.dir = directory
         threading.Thread.__init__(self)
 
-  #creates a list
+    # creates a list
     def run(self):
         try:
-            for dirname, dirnames, filenames in os.walk(self.dir):
             # search files for "@todo"
+            for dirname, dirnames, filenames in os.walk(self.dir):
                 for filename in filenames:
                     searchfile = open(os.path.join(dirname, filename), "r")
                     for num, line in enumerate(searchfile, 0):
@@ -62,16 +63,19 @@ class List(threading.Thread):
         return len(self.list)
 
     def open(self, index):
+        # @todo enable the ability to cancel panel
         window = sublime.active_window()
         window.open_file(self.list[index].filepath)
         view = window.active_view()
-        #focus the todo note in the new view
+        # focus the todo note in the new view
         # @todo finish this concept - not always working
         pt = view.text_point(self.list[index].lineNum, 0)
         view.show(pt)
 
     def panel(self):
         curList = []
+        # @todo return empty array message if self.list is empty
+        # @todo if thread is currently searching for files, return message
         for item in self.list:
             curList.append([item.text, item.filepath])
             window = sublime.active_window()
