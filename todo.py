@@ -7,7 +7,7 @@ import re
 toDoList = []
 
 
-class TodoCommand(sublime_plugin.TextCommand):
+class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         # @todo how to pass the directory?
         directory = '/Users/Alex/Sites/clients/Bothsider'
