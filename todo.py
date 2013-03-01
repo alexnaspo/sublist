@@ -3,6 +3,7 @@ import sublime_plugin
 import os
 import threading
 import re
+from time import sleep
 
 toDoList = []
 
@@ -64,13 +65,11 @@ class List(threading.Thread):
 
     def open(self, index):
         # @todo enable the ability to cancel panel
+        # User cancels panel
+        if (index == -1):
+            return
         window = sublime.active_window()
-        window.open_file(self.list[index].filepath)
-        view = window.active_view()
-        # focus the todo note in the new view
-        # @todo finish this concept - not always working
-        pt = view.text_point(self.list[index].lineNum, 0)
-        view.show(pt)
+        window.open_file(self.list[index].filepath + ":" + str(self.list[index].lineNum + 1), sublime.ENCODED_POSITION)
 
     def panel(self):
         curList = []
@@ -78,5 +77,5 @@ class List(threading.Thread):
         # @todo if thread is currently searching for files, return message
         for item in self.list:
             curList.append([item.text, item.filepath])
-            window = sublime.active_window()
+        window = sublime.active_window()
         window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
