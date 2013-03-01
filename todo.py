@@ -45,7 +45,7 @@ class List(threading.Thread):
                     for num, line in enumerate(searchfile, 0):
                         if "@todo" in line:
                             fullPath = os.path.join(dirname, filename)
-                            line = re.search("(@todo\\s.*)", line, re.I | re.S)
+                            line = re.search("(@todo.*)", line, re.I | re.S)
                             item = ListItem(fullPath, line.group(1), num)
                             self.add(item)
                     searchfile.close()
@@ -73,6 +73,7 @@ class List(threading.Thread):
         window = sublime.active_window()
         if(self.count() < 1):
             window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            return
         curList = []
         # @todo if thread is currently searching for files, return message
         for item in self.list:
