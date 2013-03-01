@@ -3,7 +3,6 @@ import sublime_plugin
 import os
 import threading
 import re
-from time import sleep
 
 toDoList = []
 
@@ -11,7 +10,7 @@ toDoList = []
 class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         # @todo how to pass the directory?
-        directory = '/Users/Alex/Sites/clients/Bothsider'
+        directory = '/Users/Alex/Sites/clients/Bothsider/application/views'
         global toDoList
         toDoList = List(directory)
         # creates the listObject in a thread
@@ -64,7 +63,6 @@ class List(threading.Thread):
         return len(self.list)
 
     def open(self, index):
-        # @todo enable the ability to cancel panel
         # User cancels panel
         if (index == -1):
             return
@@ -72,10 +70,11 @@ class List(threading.Thread):
         window.open_file(self.list[index].filepath + ":" + str(self.list[index].lineNum + 1), sublime.ENCODED_POSITION)
 
     def panel(self):
+        window = sublime.active_window()
+        if(self.count() < 1):
+            window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
         curList = []
-        # @todo return empty array message if self.list is empty
         # @todo if thread is currently searching for files, return message
         for item in self.list:
             curList.append([item.text, item.filepath])
-        window = sublime.active_window()
         window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
