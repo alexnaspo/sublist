@@ -5,12 +5,20 @@ import threading
 import re
 
 toDoList = []
+terms = []
 
-# @todo auto creation/completion of github/bitbucket issues?
+# @TODO auto creation/completion of github/bitbucket issues?
 
-
+# @TODO remove terms from global scope and add to list object
 class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        s = sublime.load_settings("sublist.sublime-settings")
+        global terms
+
+        #convert unicode strings in settings to ascii
+        for x in s.get("terms"):
+            terms.append(x.encode("ascii", "ignore"))
+
         global toDoList
         toDoList = []
         dirs = sublime.active_window().folders()
@@ -49,7 +57,6 @@ class PanelCommand(sublime_plugin.TextCommand):
         window = sublime.active_window()
         curList = []
         for item in toDoList[index].list:
-            # for item in x.list:
             curList.append([item.text, item.filepath])
         window.show_quick_panel(curList, toDoList[index].open, sublime.MONOSPACE_FONT)
 
@@ -74,16 +81,18 @@ class List(threading.Thread):
             for dirname, dirnames, filenames in os.walk(self.dir):
                 for filename in filenames:
                     searchfile = open(os.path.join(dirname, filename), "r")
-                    # @todo create moving status bar
+                    # @TODO create moving status bar
                     for num, line in enumerate(searchfile, 0):
-                        if "@TODO" in line:
+                        #search each line for all strings defined in settings
+                        if any(x in line for x in terms):
                             fullPath = os.path.join(dirname, filename)
-                            line = re.search("(@todo.*)", line, re.I | re.S)
+                            # @TODO regex should be based on settings
+                            line = re.search("(@todo.*|@return.*)", line, re.I | re.S)
                             item = ListItem(fullPath, line.group(1), num)
                             self.add(item)
                     searchfile.close()
             return
-        # @todo look into error handling
+        # @TODO look into error handling
         except (4) as (e):
             e = "error"
             print e
