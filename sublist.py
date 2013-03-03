@@ -14,10 +14,14 @@ class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dirs = getDirs()
         global toDoList
+
         for i, x in enumerate(dirs):
             #spawn thread for each top-level directory in project
             toDoList.append(List(x))
             toDoList[i].start()
+            if dirs < 1:
+                # temporary fix, this should be re-done/re-thought properly
+                break
         sublime.status_message('AutoListr successfully loaded your list')
 
 
