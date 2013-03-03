@@ -15,6 +15,7 @@ class UpdatelistCommand(sublime_plugin.TextCommand):
         dirs = getDirs()
         global toDoList
         for i, x in enumerate(dirs):
+            #spawn thread for each top-level directory in project
             toDoList.append(List(x))
             toDoList[i].start()
         sublime.status_message('AutoListr successfully loaded your list')
@@ -26,7 +27,7 @@ class PanelCommand(sublime_plugin.TextCommand):
         curList = []
 
         if len(toDoList) > 1:
-            # multiple directories in project, add project select panal
+            # multiple directories in project, add project select panel
             for List in toDoList:
                 curList.append(List.dir)
             window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
@@ -108,7 +109,7 @@ class List(threading.Thread):
             curList.append([item.text, item.filepath])
         window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
 
-
+# @TODO should be a class which has many lists
 def getDirs():
     #current solution to autodetect folders in current project
     dirs = []
