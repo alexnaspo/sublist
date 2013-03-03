@@ -75,7 +75,11 @@ class List(threading.Thread):
     def run(self):
         try:
             # search files for "@todo"
+            ignore = ["/.git"]
             for dirname, dirnames, filenames in os.walk(self.dir):
+                # ignore directories defined in settings to speed up search
+                if any(dirname == self.dir + x for x in ignore):
+                    break
                 for filename in filenames:
                     searchfile = open(os.path.join(dirname, filename), "r")
                     # @TODO create moving status bar
