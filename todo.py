@@ -21,14 +21,21 @@ class UpdatelistCommand(sublime_plugin.TextCommand):
 class PanelCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         window = sublime.active_window()
-
         curList = []
+        if len(toDoList) > 1:
+            for List in toDoList:
+                curList.append(List.dir)
+            window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
+        else:
+            print('cool')
 
-        for List in toDoList:
-            for item in List.list:
-                print(item.filepath)
-                curList.append([item.text, item.filepath])
-        window.show_quick_panel(curList, List.open, sublime.MONOSPACE_FONT, {"here": True})
+    def project(self, index):
+        window = sublime.active_window()
+        curList = []
+        for item in toDoList[index].list:
+            # for item in x.list:
+            curList.append([item.text, item.filepath])
+        window.show_quick_panel(curList, toDoList[index].open, sublime.MONOSPACE_FONT)
 
 
 class ListItem():
@@ -36,12 +43,6 @@ class ListItem():
         self.filepath = filepath
         self.text = text
         self.lineNum = lineNum
-
-    # def open(self, index):
-    #     if (index == -1):
-    #         return
-    #     window = sublime.active_window()
-    #     window.open_file(self.filepath + ":" + str(self.lineNum + 1), sublime.ENCODED_POSITION)
 
 
 class List(threading.Thread):
@@ -78,16 +79,6 @@ class List(threading.Thread):
     def count(self):
         return len(self.list)
 
-    # def getDirs(self):
-    #     packages_path = sublime.packages_path()
-    #     mysessionpath = "{0}{1}..{1}Settings{1}Auto Save Session.sublime_session".format(packages_path, os.sep)
-    #     response = json.loads(open(mysessionpath).read(), strict=False)
-    #     for window in response['windows']:
-    #         if window['window_id'] == sublime.active_window().id():
-    #             for directory in window['folders']:
-    #                 print(directory['path'])
-    #                 self.dirs.append(directory['path'])
-
     def open(self, index):
         # User cancels panel
         if (index == -1):
@@ -95,16 +86,16 @@ class List(threading.Thread):
         window = sublime.active_window()
         window.open_file(self.list[index].filepath + ":" + str(self.list[index].lineNum + 1), sublime.ENCODED_POSITION)
 
-    # def panel(self):
-    #     window = sublime.active_window()
-    #     if(self.count() < 1):
-    #         window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-    #         return
-    #     curList = []
+    def panel(self):
+        window = sublime.active_window()
+        if(self.count() < 1):
+            window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            return
+        curList = []
 
-    #     for item in self.list:
-    #         curList.append([item.text, item.filepath])
-    #     window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
+        for item in self.list:
+            curList.append([item.text, item.filepath])
+        window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
 
 
 def getDirs():
