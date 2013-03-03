@@ -3,8 +3,19 @@ import sublime_plugin
 import os
 import threading
 import re
+import json
 
 toDoList = []
+
+
+class GetdirCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        packages_path = sublime.packages_path()
+        mysessionpath = "{0}{1}..{1}Settings{1}Auto Save Session.sublime_session".format(packages_path, os.sep)
+        response = json.loads(open(mysessionpath).read(),strict=False)
+        for window in response['windows']:
+            if window['window_id'] == sublime.active_window().id():
+                print(window['folders'])
 
 
 class UpdatelistCommand(sublime_plugin.TextCommand):
