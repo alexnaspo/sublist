@@ -3,7 +3,6 @@ import sublime_plugin
 import os
 import threading
 import re
-import json
 
 toDoList = []
 
@@ -12,8 +11,9 @@ toDoList = []
 
 class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        dirs = getDirs()
         global toDoList
+        toDoList = []
+        dirs = sublime.active_window().folders()
 
         for i, x in enumerate(dirs):
             #spawn thread for each top-level directory in project
@@ -76,7 +76,7 @@ class List(threading.Thread):
                     searchfile = open(os.path.join(dirname, filename), "r")
                     # @todo create moving status bar
                     for num, line in enumerate(searchfile, 0):
-                        if "@todo" in line:
+                        if "@TODO" in line:
                             fullPath = os.path.join(dirname, filename)
                             line = re.search("(@todo.*)", line, re.I | re.S)
                             item = ListItem(fullPath, line.group(1), num)
@@ -112,17 +112,3 @@ class List(threading.Thread):
         for item in self.list:
             curList.append([item.text, item.filepath])
         window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
-
-# @TODO should be a class which has many lists
-def getDirs():
-    #current solution to autodetect folders in current project
-    dirs = []
-    packages_path = sublime.packages_path()
-    mysessionpath = "{0}{1}..{1}Settings{1}Auto Save Session.sublime_session".format(packages_path, os.sep)
-    response = json.loads(open(mysessionpath).read(), strict=False)
-    for window in response['windows']:
-        if window['window_id'] == sublime.active_window().id():
-            for directory in window['folders']:
-                print(directory['path'])
-                dirs.append(directory['path'])
-            return dirs
