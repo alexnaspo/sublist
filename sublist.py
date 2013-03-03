@@ -5,19 +5,12 @@ import threading
 import re
 
 toDoList = []
-terms = []
 
 # @TODO auto creation/completion of github/bitbucket issues?
 
-# @TODO remove terms from global scope and add to list object
+
 class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        s = sublime.load_settings("sublist.sublime-settings")
-        global terms
-
-        #convert unicode strings in settings to ascii
-        for x in s.get("terms"):
-            terms.append(x.encode("ascii", "ignore"))
 
         global toDoList
         toDoList = []
@@ -72,6 +65,10 @@ class List(threading.Thread):
     def __init__(self, directory):
         self.list = []
         self.dir = directory
+        self.terms = []
+        s = sublime.load_settings("sublist.sublime-settings")
+        for x in s.get("terms"):
+            self.terms.append(x.encode("ascii", "ignore"))
         threading.Thread.__init__(self)
 
     # creates a list
@@ -84,7 +81,7 @@ class List(threading.Thread):
                     # @TODO create moving status bar
                     for num, line in enumerate(searchfile, 0):
                         #search each line for all strings defined in settings
-                        if any(x in line for x in terms):
+                        if any(x in line for x in self.terms):
                             fullPath = os.path.join(dirname, filename)
                             # @TODO regex should be based on settings
                             line = re.search("(@todo.*|@return.*)", line, re.I | re.S)
