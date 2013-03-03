@@ -66,19 +66,22 @@ class List(threading.Thread):
         self.list = []
         self.dir = directory
         self.terms = []
+        self.ignore = []
         s = sublime.load_settings("sublist.sublime-settings")
         for x in s.get("terms"):
             self.terms.append(x.encode("ascii", "ignore"))
+        threading.Thread.__init__(self)
+        for x in s.get("ignore_dirs"):
+            self.ignore.append(x.encode("ascii", "ignore"))
         threading.Thread.__init__(self)
 
     # creates a list
     def run(self):
         try:
             # search files for "@todo"
-            ignore = ["/.git"]
             for dirname, dirnames, filenames in os.walk(self.dir):
                 # ignore directories defined in settings to speed up search
-                if any(dirname == self.dir + x for x in ignore):
+                if any(dirname == self.dir + x for x in self.ignore):
                     break
                 for filename in filenames:
                     searchfile = open(os.path.join(dirname, filename), "r")

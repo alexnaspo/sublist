@@ -1,3 +1,4 @@
 {
-  "terms": ["@TODO"]
+  "terms": ["@TODO"],
+  "ignore_dirs": ["/.git"]
 }
