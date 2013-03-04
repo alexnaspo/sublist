@@ -4,17 +4,18 @@ import os
 import threading
 import re
 
-toDoList = []
+to_do_list = []
 terms = []
 ignore = []
 
 # @TODO auto creation/completion of github/bitbucket issues?
+# @TODO run updatelist command when sublime is opened?
 
 
 class UpdatelistCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global terms, ignore, toDoList
-        toDoList = []
+        global terms, ignore, to_do_list
+        to_do_list = []
         dirs = sublime.active_window().folders()
 
         s = sublime.load_settings("sublist.sublime-settings")
@@ -27,8 +28,8 @@ class UpdatelistCommand(sublime_plugin.TextCommand):
 
         for i, x in enumerate(dirs):
             #spawn thread for each top-level directory in project
-            toDoList.append(List(x))
-            toDoList[i].start()
+            to_do_list.append(List(x))
+            to_do_list[i].start()
 
 
 class PanelCommand(sublime_plugin.TextCommand):
@@ -36,28 +37,28 @@ class PanelCommand(sublime_plugin.TextCommand):
         window = sublime.active_window()
         curList = []
 
-        if len(toDoList) > 1:
+        if len(to_do_list) > 1:
             print "here"
             # multiple directories in project, add project select panel
-            for List in toDoList:
+            for List in to_do_list:
                 curList.append(List.dir)
             window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
         else:
             # one folder in project, skip project select panel
-            if(toDoList[0].count() < 1):
+            if(to_do_list[0].count() < 1):
                 window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
                 return
-            for item in toDoList[0].list:
+            for item in to_do_list[0].list:
                 curList.append([item.text, item.filepath])
-            window.show_quick_panel(curList, toDoList[0].open, sublime.MONOSPACE_FONT)
+            window.show_quick_panel(curList, to_do_list[0].open, sublime.MONOSPACE_FONT)
 
     def project(self, index):
         # project select panel
         window = sublime.active_window()
         curList = []
-        for item in toDoList[index].list:
+        for item in to_do_list[index].list:
             curList.append([item.text, item.filepath])
-        window.show_quick_panel(curList, toDoList[index].open, sublime.MONOSPACE_FONT)
+        window.show_quick_panel(curList, to_do_list[index].open, sublime.MONOSPACE_FONT)
 
 
 class ListItem():
