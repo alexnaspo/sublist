@@ -29,9 +29,6 @@ class UpdatelistCommand(sublime_plugin.TextCommand):
             #spawn thread for each top-level directory in project
             toDoList.append(List(x))
             toDoList[i].start()
-            if dirs < 1:
-                # temporary fix, this should be re-done/re-thought properly
-                break
 
 
 class PanelCommand(sublime_plugin.TextCommand):
@@ -60,7 +57,6 @@ class PanelCommand(sublime_plugin.TextCommand):
         curList = []
         for item in toDoList[index].list:
             curList.append([item.text, item.filepath])
-        print toDoList[index].list
         window.show_quick_panel(curList, toDoList[index].open, sublime.MONOSPACE_FONT)
 
 
@@ -80,14 +76,11 @@ class List(threading.Thread):
     # creates a list
     def run(self):
         try:
-            # search files for "@todo"
-            print self.dir
+            # search files for terms defined in settings
             for dirname, dirnames, filenames in os.walk(self.dir):
                 for filename in filenames:
                     searchfile = open(os.path.join(dirname, filename), "r")
-                    # @TODO create moving status bar
                     for num, line in enumerate(searchfile, 0):
-                        #search each line for all strings defined in settings
                         if any(x in line for x in terms):
                             fullPath = os.path.join(dirname, filename)
                             # @TODO regex should be based on settings
@@ -95,6 +88,11 @@ class List(threading.Thread):
                             item = ListItem(fullPath, line.group(1), num)
                             self.add(item)
                     searchfile.close()
+                if any(dirname == self.dir + i for i in ignore):
+                    # ignore files defined in settings
+                    for i, x in enumerate(dirnames, 0):
+                        print dirnames[i]
+                        del dirnames[i]
             return
         # @TODO look into error handling
         except (4) as (e):
@@ -102,7 +100,6 @@ class List(threading.Thread):
             print e
 
     def add(self, item):
-        print(item)
         self.list.append(item)
 
     def count(self):
@@ -110,7 +107,6 @@ class List(threading.Thread):
 
     def open(self, index):
         # User cancels panel
-        print("cool")
         if (index == -1):
             return
         window = sublime.active_window()
