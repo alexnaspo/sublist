@@ -12,7 +12,7 @@ ignore = []
 # @TODO run updatelist command when sublime is opened?
 
 
-class UpdatelistCommand(sublime_plugin.TextCommand):
+class UpdateListCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         global terms, ignore, to_do_list
         to_do_list = []
@@ -38,7 +38,6 @@ class PanelCommand(sublime_plugin.TextCommand):
         curList = []
 
         if len(to_do_list) > 1:
-            print "here"
             # multiple directories in project, add project select panel
             for List in to_do_list:
                 curList.append(List.dir)
@@ -92,7 +91,6 @@ class List(threading.Thread):
                 if any(dirname == self.dir + i for i in ignore):
                     # ignore files defined in settings
                     for i, x in enumerate(dirnames, 0):
-                        print dirnames[i]
                         del dirnames[i]
             return
         # @TODO look into error handling
