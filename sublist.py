@@ -19,7 +19,7 @@ class UpdateListCommand(sublime_plugin.TextCommand):
         dirs = sublime.active_window().folders()
 
         s = sublime.load_settings("sublist.sublime-settings")
-
+        # convert settings to ascii from unicode, possibly another solution?
         for x in s.get("terms"):
             terms.append(x.encode("ascii", "ignore"))
 
@@ -36,7 +36,6 @@ class SublistPanelCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         window = sublime.active_window()
         curList = []
-
         if len(to_do_list) > 1:
             # multiple directories in project, add project select panel
             for List in to_do_list:
@@ -44,6 +43,9 @@ class SublistPanelCommand(sublime_plugin.TextCommand):
             window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
         else:
             # one folder in project, skip project select panel
+            if not to_do_list:
+                window.show_quick_panel(["No Items, Update List?"], self.view.run_command('update_list'), sublime.MONOSPACE_FONT)
+                return
             if(to_do_list[0].count() < 1):
                 window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
                 return
@@ -53,11 +55,14 @@ class SublistPanelCommand(sublime_plugin.TextCommand):
 
     def project(self, index):
         # project select panel
-        window = sublime.active_window()
         curList = []
+        if(to_do_list[index].count() < 1):
+            self.view.window().show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            return
+
         for item in to_do_list[index].list:
             curList.append([item.text, item.filepath])
-        window.show_quick_panel(curList, to_do_list[index].open, sublime.MONOSPACE_FONT)
+        self.view.window().show_quick_panel(curList, to_do_list[index].open, sublime.MONOSPACE_FONT)
 
 
 class ListItem():
