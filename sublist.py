@@ -30,9 +30,9 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             if not self.project_list:
                 self.window.show_quick_panel(["No Items, Update List?"], self.update(), sublime.MONOSPACE_FONT)
                 return
-            # if(self.project_list[0].count() < 1):
-            #     window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-            #     return
+            if(self.project_list[0].count() < 1):
+                self.window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+                return
             for item in self.project_list[0].list:
                 curList.append([item.text, item.filepath])
             self.window.show_quick_panel(curList, self.project_list[0].open, sublime.MONOSPACE_FONT)
