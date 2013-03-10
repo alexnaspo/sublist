@@ -10,13 +10,15 @@ ignore = []
 
 # @TODO auto creation/completion of github/bitbucket issues?
 # @TODO run updatelist command when sublime is opened?
+# @TODO give user the ability to set "select_type" to true in settings
+# if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
-class UpdateListCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
+class UpdateListCommand(sublime_plugin.WindowCommand):
+    def run(self):
         global terms, ignore, to_do_list
         to_do_list = []
-        dirs = sublime.active_window().folders()
+        dirs = self.window.folders()
 
         s = sublime.load_settings("sublist.sublime-settings")
         # convert settings to ascii from unicode, possibly another solution?
@@ -32,37 +34,36 @@ class UpdateListCommand(sublime_plugin.TextCommand):
             to_do_list[i].start()
 
 
-class SublistPanelCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        window = sublime.active_window()
+class SublistPanelCommand(sublime_plugin.WindowCommand):
+    def run(self):
         curList = []
         if len(to_do_list) > 1:
             # multiple directories in project, add project select panel
             for List in to_do_list:
                 curList.append(List.dir)
-            window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
+            self.window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
         else:
             # one folder in project, skip project select panel
             if not to_do_list:
-                window.show_quick_panel(["No Items, Update List?"], self.view.run_command('update_list'), sublime.MONOSPACE_FONT)
+                self.window.show_quick_panel(["No Items, Update List?"], self.window.run_command('update_list'), sublime.MONOSPACE_FONT)
                 return
             # if(to_do_list[0].count() < 1):
             #     window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
             #     return
             for item in to_do_list[0].list:
                 curList.append([item.text, item.filepath])
-            window.show_quick_panel(curList, to_do_list[0].open, sublime.MONOSPACE_FONT)
+            self.window.show_quick_panel(curList, to_do_list[0].open, sublime.MONOSPACE_FONT)
 
     def project(self, index):
         # project select panel
         curList = []
         if(to_do_list[index].count() < 1):
-            self.view.window().show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            self.window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
             return
 
         for item in to_do_list[index].list:
             curList.append([item.text, item.filepath])
-        self.view.window().show_quick_panel(curList, to_do_list[index].open, sublime.MONOSPACE_FONT)
+        self.window.show_quick_panel(curList, to_do_list[index].open, sublime.MONOSPACE_FONT)
 
 
 class ListItem():
