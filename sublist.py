@@ -46,9 +46,9 @@ class SublistPanelCommand(sublime_plugin.TextCommand):
             if not to_do_list:
                 window.show_quick_panel(["No Items, Update List?"], self.view.run_command('update_list'), sublime.MONOSPACE_FONT)
                 return
-            if(to_do_list[0].count() < 1):
-                window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-                return
+            # if(to_do_list[0].count() < 1):
+            #     window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            #     return
             for item in to_do_list[0].list:
                 curList.append([item.text, item.filepath])
             window.show_quick_panel(curList, to_do_list[0].open, sublime.MONOSPACE_FONT)
@@ -116,13 +116,13 @@ class List(threading.Thread):
         window = sublime.active_window()
         window.open_file(self.list[index].filepath + ":" + str(self.list[index].lineNum + 1), sublime.ENCODED_POSITION)
 
-    def panel(self):
-        window = sublime.active_window()
-        if(self.count() < 1):
-            window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-            return
-        curList = []
-
-        for item in self.list:
-            curList.append([item.text, item.filepath])
-        window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
+    # def panel(self):
+    #     window = sublime.active_window()
+    #     if(self.count() < 1):
+    #         window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+    #         return
+    #     curList = []
+    #     print "yESSIR"
+    #     for item in self.list:
+    #         curList.append([item.text, item.filepath])
+    #     window.show_quick_panel(curList, self.open, sublime.MONOSPACE_FONT)
