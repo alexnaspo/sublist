@@ -4,7 +4,6 @@ import os
 import threading
 import re
 
-to_do_list = []
 terms = []
 ignore = []
 
@@ -14,10 +13,43 @@ ignore = []
 # if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
-class UpdateListCommand(sublime_plugin.WindowCommand):
+class SublistPanelCommand(sublime_plugin.WindowCommand):
+    def __init__(self, window):
+        self.window = window
+        self.project_list = []
+
     def run(self):
-        global terms, ignore, to_do_list
-        to_do_list = []
+        curList = []
+        if len(self.project_list) > 1:
+            # multiple directories in project, add project select panel
+            for List in self.project_list:
+                curList.append(List.dir)
+            self.window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
+        else:
+            # one folder in project, skip project select panel
+            if not self.project_list:
+                self.window.show_quick_panel(["No Items, Update List?"], self.update(), sublime.MONOSPACE_FONT)
+                return
+            # if(self.project_list[0].count() < 1):
+            #     window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            #     return
+            for item in self.project_list[0].list:
+                curList.append([item.text, item.filepath])
+            self.window.show_quick_panel(curList, self.project_list[0].open, sublime.MONOSPACE_FONT)
+
+    def project(self, index):
+        # project select panel
+        curList = []
+        if(self.project_list[index].count() < 1):
+            self.window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
+            return
+
+        for item in self.project_list[index].list:
+            curList.append([item.text, item.filepath])
+        self.window.show_quick_panel(curList, self.project_list[index].open, sublime.MONOSPACE_FONT)
+
+    def update(self):
+        global terms, ignore
         dirs = self.window.folders()
 
         s = sublime.load_settings("sublist.sublime-settings")
@@ -30,40 +62,8 @@ class UpdateListCommand(sublime_plugin.WindowCommand):
 
         for i, x in enumerate(dirs):
             #spawn thread for each top-level directory in project
-            to_do_list.append(List(x))
-            to_do_list[i].start()
-
-
-class SublistPanelCommand(sublime_plugin.WindowCommand):
-    def run(self):
-        curList = []
-        if len(to_do_list) > 1:
-            # multiple directories in project, add project select panel
-            for List in to_do_list:
-                curList.append(List.dir)
-            self.window.show_quick_panel(curList, self.project, sublime.MONOSPACE_FONT)
-        else:
-            # one folder in project, skip project select panel
-            if not to_do_list:
-                self.window.show_quick_panel(["No Items, Update List?"], self.window.run_command('update_list'), sublime.MONOSPACE_FONT)
-                return
-            # if(to_do_list[0].count() < 1):
-            #     window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-            #     return
-            for item in to_do_list[0].list:
-                curList.append([item.text, item.filepath])
-            self.window.show_quick_panel(curList, to_do_list[0].open, sublime.MONOSPACE_FONT)
-
-    def project(self, index):
-        # project select panel
-        curList = []
-        if(to_do_list[index].count() < 1):
-            self.window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-            return
-
-        for item in to_do_list[index].list:
-            curList.append([item.text, item.filepath])
-        self.window.show_quick_panel(curList, to_do_list[index].open, sublime.MONOSPACE_FONT)
+            self.project_list.append(List(x))
+            self.project_list[i].start()
 
 
 class ListItem():
