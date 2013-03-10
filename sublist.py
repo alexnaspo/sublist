@@ -32,7 +32,7 @@ class UpdateListCommand(sublime_plugin.TextCommand):
             to_do_list[i].start()
 
 
-class PanelCommand(sublime_plugin.TextCommand):
+class SublistPanelCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         window = sublime.active_window()
         curList = []

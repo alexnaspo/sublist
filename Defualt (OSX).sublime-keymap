@@ -1,4 +1,0 @@
-[  
-    { "keys": ["super+k"], "command": "list_panel" },
-    { "keys": ["shift+alt+super+k"], "command": "update_panel"}
-]  
