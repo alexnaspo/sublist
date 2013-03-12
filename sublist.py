@@ -17,49 +17,50 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
         self.dirs = self.window.folders()
 
     def run(self):
-        options = []
-        if not self.project_list or (len(self.project_list) < 1):
-            options = ["No Items, Update List?"]
-            method = self.update()
-        elif len(self.project_list) > 1:
-            options = self.getDirOptions()
-            method = self.project
-        else:
-            # one folder in project, skip project select panel
-            options = self.project_list[0].getOptions()
-            method = self.project_list[0].open
+        self.removeEmptyListFromProjectList()
+        response = self.getDirOptions()
+        if(response):
+            self.activate(response[0], response[1])
 
-        self.activate(options, method)
-
-    def project(self, index):
+    def selectProject(self, index):
         # project select panel
-        # @TODO this can be reworked / more elegant
         if (index == -1):  # User cancels panel
             return
         options = self.project_list[index].getOptions()
         method = self.project_list[index].open
         self.activate(options, method)
 
-    def update(self):
-        for i, x in enumerate(self.dirs):
+    def createProjectList(self, index):
+        for i, directory in enumerate(self.dirs):
             #spawn thread for each top-level directory in project
-            self.project_list.append(List(x))
+            self.project_list.append(Sublist(directory))
             self.project_list[i].start()
 
     def getDirOptions(self):
         options = []
+        if not self.project_list or (len(self.project_list) < 1):
+            # Project List is Empty - ask to update
+            options = ["No Items, Update List?"]
+            method = self.createProjectList
+        elif len(self.project_list) == 1:
+            # Single Directory - skip project list and show sublist
+            self.selectProject(0)
+            return None
+        else:
+            # Multiple directories - show project List
+            for index, List in enumerate(self.project_list):
+                options.append([List.dir, str(List.count()) + " Items"])
+            method = self.selectProject
+        return [options, method]
+
+    def removeEmptyListFromProjectList(self):
         emptyLists = []
         for index, List in enumerate(self.project_list):
             # don't show directory if it has 0 Items
-            if (List.count() > 0):
-                options.append([List.dir, str(List.count()) + " Items"])
-            else:
-                # remove the empty Lists from project_list
-                # @TODO this can be more elgant
+            if (List.count() < 1):
                 emptyLists.append(index)
-        for List in emptyLists:
-            del self.project_list[List]
-        return options
+        for index in emptyLists:
+            del self.project_list[index]
 
     def activate(self, options, method):
         # @TODO as of now this is not needed
@@ -76,7 +77,7 @@ class ListItem():
         sublime.active_window().open_file(self.filepath + ":" + str(self.lineNum + 1), sublime.ENCODED_POSITION)
 
 
-class List(threading.Thread):
+class Sublist(threading.Thread):
     def __init__(self, directory):
         self.list = []
         self.dir = directory
@@ -126,10 +127,9 @@ class List(threading.Thread):
         self.list[index].open()
 
     def getOptions(self):
+        if len(self.list) < 1:
+            return ['No Items']
         options = []
         for item in self.list:
             options.append([item.text, item.filepath])
-        if len(options) < 1:
-            # this is not needed as of now
-            options = ["No Items"]
         return options
