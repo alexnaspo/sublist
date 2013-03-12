@@ -7,6 +7,7 @@ import re
 # @TODO auto creation/completion of github/bitbucket issues?
 # @TODO run updatelist command when sublime is opened?
 # @TODO give user the ability to set "select_type" to true in settings
+# @TODO add number of list items when displaying top level project
 # if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
@@ -16,35 +17,33 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
         self.project_list = []
 
     def run(self):
-        # @TODO this can be more elegant
-        curList = []
-        if len(self.project_list) > 1:
+        options = []
+        if not self.project_list or (self.project_list[0].count() < 1):
+            options = ["No Items, Update List?"]
+            method = self.update()
+        elif len(self.project_list) > 1:
             # multiple directories in project, add project select panel
             for List in self.project_list:
-                curList.append(List.dir)
-            self.activatePanel(curList, self.project)
+                options.append(List.dir)
+            method = self.project
         else:
+            # @TODO this can be more elegant
             # one folder in project, skip project select panel
-            if not self.project_list or (self.project_list[0].count() < 1):
-                self.activatePanel(["No Items, Update List?"], self.update())
-                return
-            # if(self.project_list[0].count() < 1):
-            #     self.window.show_quick_panel(["No Items"], None, sublime.MONOSPACE_FONT)
-            #     return
             for item in self.project_list[0].list:
-                curList.append([item.text, item.filepath])
-            self.activatePanel(curList, self.project_list[0].open)
+                options.append([item.text, item.filepath])
+            method = self.project_list[0].open
+        self.activate(options, method)
 
     def project(self, index):
         # project select panel
         curList = []
         if(self.project_list[index].count() < 1):
-            self.activatePanel(["No Items"], None)
+            self.activate(["No Items"], None)
             return
 
         for item in self.project_list[index].list:
             curList.append([item.text, item.filepath])
-        self.activatePanel(curList, self.project_list[index].open)
+        self.activate(curList, self.project_list[index].open)
 
     def update(self):
         dirs = self.window.folders()
@@ -54,7 +53,7 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             self.project_list.append(List(x))
             self.project_list[i].start()
 
-    def activatePanel(self, options, method):
+    def activate(self, options, method):
         self.window.show_quick_panel(options, method, sublime.MONOSPACE_FONT)
 
 
