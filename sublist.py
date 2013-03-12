@@ -38,11 +38,13 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
 
     def project(self, index):
         # project select panel
+        # @TODO this can be reworked / more elegant
         curList = []
         if(self.project_list[index].count() < 1):
             self.activate(["No Items"], None)
             return
 
+        # @TODO this should be a method of List - open Project?
         for item in self.project_list[index].list:
             curList.append([item.text, item.filepath])
         self.activate(curList, self.project_list[index].open)
@@ -56,14 +58,19 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             self.project_list[i].start()
 
     def activate(self, options, method):
+        # @TODO as of now this is not needed
         self.window.show_quick_panel(options, method, sublime.MONOSPACE_FONT)
 
 
 class ListItem():
+    # @TODO need a method for open
     def __init__(self, filepath, text, lineNum):
         self.filepath = filepath
         self.text = text
         self.lineNum = lineNum
+
+    def open(self):
+        sublime.active_window().open_file(self.filepath + ":" + str(self.lineNum + 1), sublime.ENCODED_POSITION)
 
 
 class List(threading.Thread):
@@ -92,7 +99,7 @@ class List(threading.Thread):
                     searchfile = open(os.path.join(dirname, filename), "r")
                     for num, line in enumerate(searchfile, 0):
                         if any(x in line for x in self.terms):
-                            fullPath = os.path.join(dirname, filename)
+                            fullPath = os.path.join(self.dir, filename)
                             # @TODO regex should be based on settings
                             line = re.search("(@todo.*|@return.*)", line, re.I | re.S)
                             item = ListItem(fullPath, line.group(1), num)
@@ -118,5 +125,4 @@ class List(threading.Thread):
         # User cancels panel
         if (index == -1):
             return
-        window = sublime.active_window()
-        window.open_file(self.list[index].filepath + ":" + str(self.list[index].lineNum + 1), sublime.ENCODED_POSITION)
+        self.list[index].open()
