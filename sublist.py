@@ -14,24 +14,19 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
     def __init__(self, window):
         self.window = window
         self.project_list = []
+        self.dirs = self.window.folders()
 
     def run(self):
         options = []
-        if not self.project_list or (self.project_list[0].count() < 1):
+        if not self.project_list or (len(self.project_list) < 1):
             options = ["No Items, Update List?"]
             method = self.update()
         elif len(self.project_list) > 1:
-            # multiple directories in project, add project select panel
-            for List in self.project_list:
-                # don't show directory if it has 0 Items
-                if (List.count() > 0):
-                    options.append([List.dir, str(List.count()) + " Items"])
+            options = self.getDirOptions()
             method = self.project
         else:
-            # @TODO this can be more elegant
             # one folder in project, skip project select panel
-            for item in self.project_list[0].list:
-                options.append([item.text, item.filepath])
+            options = self.project_list[0].getOptions()
             method = self.project_list[0].open
 
         self.activate(options, method)
@@ -39,23 +34,32 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
     def project(self, index):
         # project select panel
         # @TODO this can be reworked / more elegant
-        options = []
-        if(self.project_list[index].count() < 1):
-            self.activate(["No Items"], None)
+        if (index == -1):  # User cancels panel
             return
-
-        # @TODO this should be a method of List - open Project?
-        for item in self.project_list[index].list:
-            options.append([item.text, item.filepath])
-        self.activate(options, self.project_list[index].open)
+        options = self.project_list[index].getOptions()
+        method = self.project_list[index].open
+        self.activate(options, method)
 
     def update(self):
-        dirs = self.window.folders()
-
-        for i, x in enumerate(dirs):
+        for i, x in enumerate(self.dirs):
             #spawn thread for each top-level directory in project
             self.project_list.append(List(x))
             self.project_list[i].start()
+
+    def getDirOptions(self):
+        options = []
+        emptyLists = []
+        for index, List in enumerate(self.project_list):
+            # don't show directory if it has 0 Items
+            if (List.count() > 0):
+                options.append([List.dir, str(List.count()) + " Items"])
+            else:
+                # remove the empty Lists from project_list
+                # @TODO this can be more elgant
+                emptyLists.append(index)
+        for List in emptyLists:
+            del self.project_list[List]
+        return options
 
     def activate(self, options, method):
         # @TODO as of now this is not needed
@@ -120,3 +124,12 @@ class List(threading.Thread):
         if (index == -1):  # User cancels panel
             return
         self.list[index].open()
+
+    def getOptions(self):
+        options = []
+        for item in self.list:
+            options.append([item.text, item.filepath])
+        if len(options) < 1:
+            # this is not needed as of now
+            options = ["No Items"]
+        return options
