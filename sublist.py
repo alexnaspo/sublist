@@ -24,7 +24,9 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
         elif len(self.project_list) > 1:
             # multiple directories in project, add project select panel
             for List in self.project_list:
-                options.append(List.dir)
+                # don't show directory if it has 0 Items
+                if (List.count() > 0):
+                    options.append([List.dir, str(List.count()) + " Items"])
             method = self.project
         else:
             # @TODO this can be more elegant
