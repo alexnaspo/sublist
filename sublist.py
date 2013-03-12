@@ -7,7 +7,6 @@ import re
 # @TODO auto creation/completion of github/bitbucket issues?
 # @TODO run updatelist command when sublime is opened?
 # @TODO give user the ability to set "select_type" to true in settings
-# @TODO add number of list items when displaying top level project
 # if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
@@ -34,20 +33,21 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             for item in self.project_list[0].list:
                 options.append([item.text, item.filepath])
             method = self.project_list[0].open
+
         self.activate(options, method)
 
     def project(self, index):
         # project select panel
         # @TODO this can be reworked / more elegant
-        curList = []
+        options = []
         if(self.project_list[index].count() < 1):
             self.activate(["No Items"], None)
             return
 
         # @TODO this should be a method of List - open Project?
         for item in self.project_list[index].list:
-            curList.append([item.text, item.filepath])
-        self.activate(curList, self.project_list[index].open)
+            options.append([item.text, item.filepath])
+        self.activate(options, self.project_list[index].open)
 
     def update(self):
         dirs = self.window.folders()
@@ -63,7 +63,6 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
 
 
 class ListItem():
-    # @TODO need a method for open
     def __init__(self, filepath, text, lineNum):
         self.filepath = filepath
         self.text = text
@@ -92,28 +91,24 @@ class List(threading.Thread):
 
     # creates a list
     def run(self):
-        try:
-            # search files for terms defined in settings
-            for dirname, dirnames, filenames in os.walk(self.dir):
-                for filename in filenames:
-                    searchfile = open(os.path.join(dirname, filename), "r")
-                    for num, line in enumerate(searchfile, 0):
-                        if any(x in line for x in self.terms):
-                            fullPath = os.path.join(self.dir, filename)
-                            # @TODO regex should be based on settings
-                            line = re.search("(@todo.*|@return.*)", line, re.I | re.S)
-                            item = ListItem(fullPath, line.group(1), num)
-                            self.add(item)
-                    searchfile.close()
-                if any(dirname == self.dir + i for i in self.ignore):
-                    # ignore files defined in settings
-                    for i, x in enumerate(dirnames, 0):
-                        del dirnames[i]
-            return
-        # @TODO look into error handling
-        except (4) as (e):
-            e = "error"
-            print e
+        # @TODO Error handling
+        # search files for terms defined in settings
+        for dirname, dirnames, filenames in os.walk(self.dir):
+            for filename in filenames:
+                searchfile = open(os.path.join(dirname, filename), "r")
+                for num, line in enumerate(searchfile, 0):
+                    if any(x in line for x in self.terms):
+                        fullPath = os.path.join(dirname, filename)
+                        # @TODO regex should be based on settings
+                        line = re.search("(@todo.*|@return.*)", line, re.I | re.S)
+                        item = ListItem(fullPath, line.group(1), num)
+                        self.add(item)
+                searchfile.close()
+            if any(dirname == self.dir + i for i in self.ignore):
+                # ignore files defined in settings
+                for i, x in enumerate(dirnames, 0):
+                    del dirnames[i]
+        return
 
     def add(self, item):
         self.list.append(item)
@@ -122,7 +117,6 @@ class List(threading.Thread):
         return len(self.list)
 
     def open(self, index):
-        # User cancels panel
-        if (index == -1):
+        if (index == -1):  # User cancels panel
             return
         self.list[index].open()
