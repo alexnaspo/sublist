@@ -46,7 +46,6 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
         self.window.show_quick_panel(curList, self.project_list[index].open, sublime.MONOSPACE_FONT)
 
     def update(self):
-        global terms, ignore
         dirs = self.window.folders()
 
         for i, x in enumerate(dirs):
