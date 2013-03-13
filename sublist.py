@@ -5,10 +5,10 @@ import threading
 import re
 
 # @TODO -1- auto creation/completion of github/bitbucket issues?
-# @TODO run updatelist command when sublime is opened?
-# @TODO give user the ability to set "select_type" to true in settings
-# @TODO documentation
-# @TODO allow the option to provide a priority to each item
+# @TODO -9- run updatelist command when sublime is opened?
+# @TODO -8- give user the ability to set "select_type" to true in settings
+# @TODO -5- documentation
+# @TODO -6- allow the option to provide a priority to each item
 # if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
@@ -25,7 +25,6 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             self.activate(response[0], response[1])
 
     def selectProject(self, index):
-        # project select panel
         if (index == -1):  # User cancels panel
             return
         options = self.project_list[index].getOptions()
@@ -119,8 +118,8 @@ class Sublist(threading.Thread):
                         line = re.search(self.regex, line, re.I | re.S)
                         # @TODO add the syntax for priority to settings for user controll
                         priority = re.search("-([0-9])-", line.group(1), re.I | re.S)
-                        #set priority to 0 if not defined in line
-                        priority = priority.group(1) if priority else 0
+                        #set priority to 9 if not defined in line
+                        priority = int(priority.group(1)) if priority else int(9)
                         item = ListItem(fullPath, line.group(1), num, priority)
                         self.add(item)
                 searchfile.close()
@@ -151,10 +150,15 @@ class Sublist(threading.Thread):
         regex += ")"
         return regex
 
+    def sortList(self):
+        self.list = sorted(self.list, key=lambda ListItem: ListItem.priority, reverse=False)
+
     def getOptions(self):
+        self.sortList()
         if len(self.list) < 1:
             return ['No Items']
         options = []
         for item in self.list:
             options.append([item.text, item.filepath])
+
         return options
