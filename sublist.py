@@ -4,7 +4,7 @@ import os
 import threading
 import re
 
-# @TODO auto creation/completion of github/bitbucket issues?
+# @TODO -1- auto creation/completion of github/bitbucket issues?
 # @TODO run updatelist command when sublime is opened?
 # @TODO give user the ability to set "select_type" to true in settings
 # @TODO documentation
@@ -70,10 +70,11 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
 
 
 class ListItem():
-    def __init__(self, filepath, text, lineNum):
+    def __init__(self, filepath, text, lineNum, priority):
         self.filepath = filepath
         self.text = text
         self.lineNum = lineNum
+        self.priority = priority
 
     def open(self):
         sublime.active_window().open_file(self.filepath + ":" + str(self.lineNum + 1), sublime.ENCODED_POSITION)
@@ -116,7 +117,11 @@ class Sublist(threading.Thread):
                         fullPath = os.path.join(dirname, filename)
                         # @TODO regex should be based on settings
                         line = re.search(self.regex, line, re.I | re.S)
-                        item = ListItem(fullPath, line.group(1), num)
+                        # @TODO add the syntax for priority to settings for user controll
+                        priority = re.search("-([0-9])-", line.group(1), re.I | re.S)
+                        #set priority to 0 if not defined in line
+                        priority = priority.group(1) if priority else 0
+                        item = ListItem(fullPath, line.group(1), num, priority)
                         self.add(item)
                 searchfile.close()
             if any(dirname == self.dir + i for i in self.ignore):
