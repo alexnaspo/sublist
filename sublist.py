@@ -16,7 +16,19 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
     def __init__(self, window):
         self.window = window
         self.project_list = []
+        self.terms = []
+        self.ignore = []
         self.dirs = self.window.folders()
+        s = sublime.load_settings("sublist.sublime-settings")
+
+        # convert settings to ascii from unicode, possibly another solution?
+        for x in s.get("terms"):
+            self.terms.append(x.encode("ascii", "ignore"))
+
+        for x in s.get("ignore_dirs"):
+            self.ignore.append(x.encode("ascii", "ignore"))
+
+        self.regex = self.createRegEx()
 
     def run(self):
         self.removeEmptyListFromProjectList()
@@ -34,7 +46,7 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
     def createProjectList(self, index):
         for i, directory in enumerate(self.dirs):
             #spawn thread for each top-level directory in project
-            self.project_list.append(Sublist(directory))
+            self.project_list.append(Sublist(directory, self))
             self.project_list[i].start()
 
     def getPanelOptions(self):
@@ -67,6 +79,16 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
         # @TODO as of now this is not needed
         self.window.show_quick_panel(options, method, sublime.MONOSPACE_FONT)
 
+    def createRegEx(self):
+        regex = "("
+        for count, term in enumerate(self.terms):
+            regex += term + ".*"
+            if count < len(self.terms) - 1:
+                # no pipe after final term
+                regex += "|"
+        regex += ")"
+        return regex
+
 
 class ListItem():
     def __init__(self, filepath, text, lineNum, priority):
@@ -80,22 +102,10 @@ class ListItem():
 
 
 class Sublist(threading.Thread):
-    def __init__(self, directory):
+    def __init__(self, directory, parent):
         self.list = []
         self.dir = directory
-        self.ignore = []
-        self.terms = []
-        s = sublime.load_settings("sublist.sublime-settings")
-
-        # convert settings to ascii from unicode, possibly another solution?
-        #  @TODO settings and regex currently get run twice - should move to Command class
-        for x in s.get("terms"):
-            self.terms.append(x.encode("ascii", "ignore"))
-
-        for x in s.get("ignore_dirs"):
-            self.ignore.append(x.encode("ascii", "ignore"))
-
-        self.regex = self.createRegEx()
+        self.parent = parent
 
         threading.Thread.__init__(self)
 
@@ -112,10 +122,10 @@ class Sublist(threading.Thread):
             for filename in filenames:
                 searchfile = open(os.path.join(dirname, filename), "r")
                 for num, line in enumerate(searchfile, 0):
-                    if any(x in line for x in self.terms):
+                    if any(x in line for x in self.parent.terms):
                         fullPath = os.path.join(dirname, filename)
                         # @TODO regex should be based on settings
-                        line = re.search(self.regex, line, re.I | re.S)
+                        line = re.search(self.parent.regex, line, re.I | re.S)
                         # @TODO add the syntax for priority to settings for user controll
                         priority = re.search("-([0-9])-", line.group(1), re.I | re.S)
                         #set priority to 9 if not defined in line
@@ -123,7 +133,7 @@ class Sublist(threading.Thread):
                         item = ListItem(fullPath, line.group(1), num, priority)
                         self.add(item)
                 searchfile.close()
-            if any(dirname == self.dir + i for i in self.ignore):
+            if any(dirname == self.dir + i for i in self.parent.ignore):
                 # ignore files defined in settings
                 for i, x in enumerate(dirnames, 0):
                     del dirnames[i]
@@ -139,16 +149,6 @@ class Sublist(threading.Thread):
         if (index == -1):  # User cancels panel
             return
         self.list[index].open()
-
-    def createRegEx(self):
-        regex = "("
-        for count, term in enumerate(self.terms):
-            regex += term + ".*"
-            if count < len(self.terms) - 1:
-                # no pipe after final term
-                regex += "|"
-        regex += ")"
-        return regex
 
     def sortList(self):
         self.list = sorted(self.list, key=lambda ListItem: ListItem.priority, reverse=False)
