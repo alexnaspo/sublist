@@ -7,6 +7,8 @@ import re
 # @TODO auto creation/completion of github/bitbucket issues?
 # @TODO run updatelist command when sublime is opened?
 # @TODO give user the ability to set "select_type" to true in settings
+# @TODO documentation
+# @TODO allow the option to provide a priority to each item
 # if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
@@ -18,7 +20,7 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         self.removeEmptyListFromProjectList()
-        response = self.getDirOptions()
+        response = self.getPanelOptions()
         if(response):
             self.activate(response[0], response[1])
 
@@ -36,21 +38,21 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             self.project_list.append(Sublist(directory))
             self.project_list[i].start()
 
-    def getDirOptions(self):
+    def getPanelOptions(self):
         options = []
         if not self.project_list or (len(self.project_list) < 1):
             # Project List is Empty - ask to update
             options = ["No Items, Update List?"]
             method = self.createProjectList
-        elif len(self.project_list) == 1:
-            # Single Directory - skip project list and show sublist
-            self.selectProject(0)
-            return None
-        else:
+        elif len(self.project_list) > 1:
             # Multiple directories - show project List
             for index, List in enumerate(self.project_list):
                 options.append([List.dir, str(List.count()) + " Items"])
             method = self.selectProject
+        else:
+            # Single Directory - skip project list and show sublist
+            self.selectProject(0)
+            return None
         return [options, method]
 
     def removeEmptyListFromProjectList(self):
@@ -86,16 +88,24 @@ class Sublist(threading.Thread):
         s = sublime.load_settings("sublist.sublime-settings")
 
         # convert settings to ascii from unicode, possibly another solution?
+        #  @TODO settings and regex currently get run twice - should move to Command class
         for x in s.get("terms"):
             self.terms.append(x.encode("ascii", "ignore"))
 
         for x in s.get("ignore_dirs"):
             self.ignore.append(x.encode("ascii", "ignore"))
 
+        self.regex = self.createRegEx()
+
         threading.Thread.__init__(self)
 
-    # creates a list
     def run(self):
+        """ Search local directory in a thread for terms defined in settings
+
+            Ignores directories defined in settings
+
+            @return None
+        """
         # @TODO Error handling
         # search files for terms defined in settings
         for dirname, dirnames, filenames in os.walk(self.dir):
@@ -105,7 +115,7 @@ class Sublist(threading.Thread):
                     if any(x in line for x in self.terms):
                         fullPath = os.path.join(dirname, filename)
                         # @TODO regex should be based on settings
-                        line = re.search("(@todo.*|@return.*)", line, re.I | re.S)
+                        line = re.search(self.regex, line, re.I | re.S)
                         item = ListItem(fullPath, line.group(1), num)
                         self.add(item)
                 searchfile.close()
@@ -113,7 +123,7 @@ class Sublist(threading.Thread):
                 # ignore files defined in settings
                 for i, x in enumerate(dirnames, 0):
                     del dirnames[i]
-        return
+        return None
 
     def add(self, item):
         self.list.append(item)
@@ -125,6 +135,16 @@ class Sublist(threading.Thread):
         if (index == -1):  # User cancels panel
             return
         self.list[index].open()
+
+    def createRegEx(self):
+        regex = "("
+        for count, term in enumerate(self.terms):
+            regex += term + ".*"
+            if count < len(self.terms) - 1:
+                # no pipe after final term
+                regex += "|"
+        regex += ")"
+        return regex
 
     def getOptions(self):
         if len(self.list) < 1:
