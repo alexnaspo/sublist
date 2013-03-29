@@ -1,4 +1,4 @@
 [  
     // { "keys": ["super+shift+k"], "command": "update_list" },
-    { "keys": ["control+alt+super+k"], "command": "sublist_panel" }
+    { "keys": ["control+alt+l"], "command": "sublist_panel" }
 ]   

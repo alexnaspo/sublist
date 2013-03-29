@@ -4,12 +4,9 @@ import os
 import threading
 import re
 
-# @TODO -1- auto creation/completion of github/bitbucket issues?
 # @TODO -9- run updatelist command when sublime is opened?
 # @TODO -8- give user the ability to set "select_type" to true in settings
 # @TODO -5- documentation
-# @TODO -6- allow the option to provide a priority to each item
-# if true, this will provide another menu step, to select @TODOs or @errors ETC.
 
 
 class SublistPanelCommand(sublime_plugin.WindowCommand):
@@ -66,6 +63,12 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
             return None
         return [options, method]
 
+    def getItemTypeOptions(self, index):
+        options = []
+        for x in self.terms:
+            options.append(x)
+        self.activate(options, None)
+
     def removeEmptyListFromProjectList(self):
         emptyLists = []
         for index, List in enumerate(self.project_list):
@@ -91,11 +94,12 @@ class SublistPanelCommand(sublime_plugin.WindowCommand):
 
 
 class ListItem():
-    def __init__(self, filepath, text, lineNum, priority):
+    def __init__(self, filepath, text, lineNum, priority, itemType):
         self.filepath = filepath
         self.text = text
         self.lineNum = lineNum
         self.priority = priority
+        self.itemType = itemType
 
     def open(self):
         sublime.active_window().open_file(self.filepath + ":" + str(self.lineNum + 1), sublime.ENCODED_POSITION)
@@ -116,7 +120,6 @@ class Sublist(threading.Thread):
 
             @return None
         """
-        # @TODO Error handling
         # search files for terms defined in settings
         for dirname, dirnames, filenames in os.walk(self.dir):
             for filename in filenames:
@@ -124,13 +127,14 @@ class Sublist(threading.Thread):
                 for num, line in enumerate(searchfile, 0):
                     if any(x in line for x in self.parent.terms):
                         fullPath = os.path.join(dirname, filename)
-                        # @TODO regex should be based on settings
                         line = re.search(self.parent.regex, line, re.I | re.S)
+                        itemType = re.search("@([A-Z]+).*", line.group(1), re.I | re.S)
+                        itemType = itemType.group(1)
                         # @TODO add the syntax for priority to settings for user controll
                         priority = re.search("-([0-9])-", line.group(1), re.I | re.S)
-                        #set priority to 9 if not defined in line
+                        # set priority to 9 if not defined in line
                         priority = int(priority.group(1)) if priority else int(9)
-                        item = ListItem(fullPath, line.group(1), num, priority)
+                        item = ListItem(fullPath, line.group(1), num, priority, itemType)
                         self.add(item)
                 searchfile.close()
             if any(dirname == self.dir + i for i in self.parent.ignore):
